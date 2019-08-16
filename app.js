@@ -1,25 +1,19 @@
 // import dependencies
 var express = require('express');
 var morgan = require('morgan');
-var fs = require('fs')
-var path = require('path')
-var request = require('request')
+var fs = require('fs');
+var path = require('path');
+var request = require('request');
 var port = process.env.PORT || '3000';
 
 var app = express();
 
 // We use morgan for simple logging to the console
-app.use(morgan('dev', {
-  skip: function(req, res) { return res.statusCode < 400}
-}))
-app.use(morgan('common', {
-  stream: fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' })
-}))
-
+app.use(morgan('combined'));
 /**
  * Sends a request to GM API to retrieve vehicle information.
  */
-app.get('/vehicles/:id', (req, res) => {
+app.get('/vehicles/:id', function(req, res) {
   request.post({
     headers: {'Content-Type': 'application/json'},
     url: 'http://gmapi.azurewebsites.net/getVehicleInfoService',
@@ -29,6 +23,7 @@ app.get('/vehicles/:id', (req, res) => {
     },
     json: true
   }, function(err, response, body) {
+    // Ensure the request is not null
     if (response.statusCode == 200) {
       const info = {
         'vin': body.data.vin.value,
@@ -46,7 +41,7 @@ app.get('/vehicles/:id', (req, res) => {
 /**
  * Vehicle doors
  */
-app.get('/vehicles/:id/doors', (req, res) => {
+app.get('/vehicles/:id/doors', function(req, res) {
   request.post({
     headers: {'Content-Type': 'application/json'},
     url: 'http://gmapi.azurewebsites.net/getSecurityStatusService',
@@ -56,6 +51,7 @@ app.get('/vehicles/:id/doors', (req, res) => {
     },
     json: true
   }, function(err, response, body) {
+    // Ensure the request is not null
     if (response.statusCode == 200) {
       var updatedBody = [];
       body.data.doors.values.forEach(function(door) {
@@ -68,13 +64,13 @@ app.get('/vehicles/:id/doors', (req, res) => {
     } else {
       res.status(500).send('Error occured when sending request to GM API')
     }
-  })
-})
+  });
+});
 
 /**
  * Vehicle fuel
  */
-app.get('/vehicles/:id/fuel', (req, res) => {
+app.get('/vehicles/:id/fuel', function(req, res) {
   request.post({
     headers: {'Content-Type': 'application/json'},
     url: 'http://gmapi.azurewebsites.net/getEnergyService',
@@ -84,6 +80,7 @@ app.get('/vehicles/:id/fuel', (req, res) => {
     },
     json: true
   }, function(err, response, body) {
+    // Ensure the request is not null
     if (response.statusCode == 200) {
       const info = {
         percent: body.data.tankLevel.value === 'null' ? 0 : body.data.tankLevel.value
@@ -92,13 +89,13 @@ app.get('/vehicles/:id/fuel', (req, res) => {
     } else {
       res.status(500).send('Error occured when sending request to GM API')
     }
-  })
-})
+  });
+});
 
 /**
  * Vehicle battery
  */
-app.get('/vehicles/:id/battery', (req, res) => {
+app.get('/vehicles/:id/battery', function(req, res) {
   request.post({
     headers: {'Content-Type': 'application/json'},
     url: 'http://gmapi.azurewebsites.net/getEnergyService',
@@ -108,6 +105,7 @@ app.get('/vehicles/:id/battery', (req, res) => {
     },
     json: true
   }, function(err, response, body) {
+    // Ensure the request is not null
     if (response.statusCode == 200) {
       const info = {
         percent: body.data.batteryLevel.value === 'null' ? 0 : body.data.batteryLevel.value
@@ -116,13 +114,13 @@ app.get('/vehicles/:id/battery', (req, res) => {
     } else {
       res.status(500).send('Error occured when sending request to GM API')
     }
-  })
-})
+  });
+});
 
 /**
  * Start/stop vehicle engine
  */
-app.post('/vehicles/:id/engine', (req, res) => {
+app.post('/vehicles/:id/engine', function(req, res) {
   request.post({
     headers: {'Content-Type': 'application/json'},
     url: 'http://gmapi.azurewebsites.net/actionEngineService',
@@ -133,6 +131,7 @@ app.post('/vehicles/:id/engine', (req, res) => {
     },
     json: true
   }, function(err, response, body) {
+    // Ensure the request is not null
      if (response.statusCode == 200) {
       const info = {
         'status': body.actionResult.status === 'EXECUTED' ? 'success' : 'error'
@@ -141,8 +140,8 @@ app.post('/vehicles/:id/engine', (req, res) => {
     } else {
       res.status(500).send('Error occured when sending request to GM API')
     }
-  })
-})
+  });
+});
 
 app.listen(port, function() {
   console.log("Listening on port %s", port)
