@@ -16,7 +16,7 @@ npm install
 npm run start
 ```
 
-#To run tests
+# To run tests
 ```js
 npm run test
 ```
